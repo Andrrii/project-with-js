@@ -93,4 +93,64 @@ document.addEventListener("DOMContentLoaded",() => { /* js чекає загру
 
     setClock('.timer',deadline)
     // ------------------------------------------------------------
+
+
+    // При натисненні на кнопку "Зв'язатись з нами" викликаєм модальне вікно
+
+    const modalTriggers = document.querySelectorAll("[data-modal]"),
+            modal = document.querySelector('.modal'),
+            modalCloseBtn = document.querySelector('[data-close]');
+
+    function openModal () {
+        modal.classList.toggle('show')
+        document.body.style.overflow = 'hidden' // забираєм прокрутку сторінки
+        clearInterval(modalTimerId) // Якщо юзер сам відкрив вікно то воне вже не покажеться
+        window.removeEventListener('scroll',showModalByScroll)
+    }
+       
+    
+    modalTriggers.forEach(btn => {      
+        btn.addEventListener('click' , openModal)
+    })
+
+    function closeModal() {
+        modal.classList.toggle('show')
+        document.body.style.overflow = '' // вертаєм прокрутку сторінки
+    }
+
+    modalCloseBtn.addEventListener('click', closeModal)
+
+    modal.addEventListener('click', (event) => { /* Коли клікаєм за межі всплаючого вікна , 
+        то воно теж закривається  */
+        if (event.target === modal) {
+            closeModal()
+        }
+    })
+
+    document.addEventListener('keydown', (event) => {
+        if (event.code === 'Escape' && modal.classList.contains('show')) {
+            closeModal()
+        }
+    })
+
+    const modalTimerId = setTimeout(openModal,150000) // 2.5 hv
+    
+
+    function showModalByScroll () {
+         /* Коли користувач долистав до кінця сторінки ,
+            то відкриється модальне вікно */ 
+            if (  /* подивитись урок 42 */
+                window.pageYOffset + document.documentElement.clientHeight >= document.documentElement.scrollHeight) 
+            {
+               const bottomModalTimerId = setTimeout(openModal,2500)
+                //    console.log(bottomModalTimerId)
+                //    clearInterval(bottomModalTimerId)
+                
+                   
+            }
+    }
+
+    window.addEventListener('scroll', showModalByScroll)
+
+    //----------------------------------------------------------------------
 })
