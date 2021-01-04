@@ -98,11 +98,12 @@ document.addEventListener("DOMContentLoaded",() => { /* js чекає загру
     // При натисненні на кнопку "Зв'язатись з нами" викликаєм модальне вікно
 
     const modalTriggers = document.querySelectorAll("[data-modal]"),
-            modal = document.querySelector('.modal'),
-            modalCloseBtn = document.querySelector('[data-close]');
+            modal = document.querySelector('.modal');
+            
 
     function openModal () {
-        modal.classList.toggle('show')
+        modal.classList.add('show')
+        modal.classList.remove('hide')
         document.body.style.overflow = 'hidden' // забираєм прокрутку сторінки
         clearInterval(modalTimerId) // Якщо юзер сам відкрив вікно то воне вже не покажеться
         window.removeEventListener('scroll',showModalByScroll)
@@ -114,15 +115,16 @@ document.addEventListener("DOMContentLoaded",() => { /* js чекає загру
     })
 
     function closeModal() {
-        modal.classList.toggle('show')
+        modal.classList.remove('show')
+        modal.classList.add('hide')
         document.body.style.overflow = '' // вертаєм прокрутку сторінки
     }
 
-    modalCloseBtn.addEventListener('click', closeModal)
+    
 
     modal.addEventListener('click', (event) => { /* Коли клікаєм за межі всплаючого вікна , 
         то воно теж закривається  */
-        if (event.target === modal) {
+        if (event.target === modal || event.target.getAttribute('data-close') == '' /*  Якщо клікнули на хрестик */)  {
             closeModal()
         }
     })
@@ -133,7 +135,7 @@ document.addEventListener("DOMContentLoaded",() => { /* js чекає загру
         }
     })
 
-    //const modalTimerId = setTimeout(openModal,150000) // 2.5 hv
+    const modalTimerId = setTimeout(openModal,150000) // 2.5 hv
     
 
     function showModalByScroll () {
@@ -152,12 +154,12 @@ document.addEventListener("DOMContentLoaded",() => { /* js чекає загру
 
     window.addEventListener('scroll', showModalByScroll)
 
-    //----------------------------------------------------------------------
+//----------------------------------------------------------------------
 
-    // Перероблюєм карточки меню
+//----------    Перероблюєм карточки меню
 
     class OurMenu {
-        constructor(src,alt,title,descr,price,parentSelector) {
+        constructor(src,alt,title,descr,price,parentSelector, ...classes) {
             this.src = src
             this.alt =alt
             this.title = title
@@ -165,6 +167,8 @@ document.addEventListener("DOMContentLoaded",() => { /* js чекає загру
             this.price = price
             this.parent = document.querySelector(parentSelector)
             this.transfer = 27
+            this.classes = classes
+            this.defaultClass = "menu__item"
             this.changeToUAH()
 
         }
@@ -175,17 +179,19 @@ document.addEventListener("DOMContentLoaded",() => { /* js чекає загру
 
         render() {
            const element = document.createElement('div')
+           element.className = this.defaultClass
+           this.classes.forEach(className => element.classList.add(className)) // Якщо ми хочемо додати ще класи
            element.innerHTML = `   
-           <div class="menu__item">
+           
                 <img src="img/tabs/${this.src}" alt=${this.alt}>
                 <h3 class="menu__item-subtitle">${this.title}</h3>
                 <div class="menu__item-descr">${this.descr}</div>
                 <div class="menu__item-divider"></div>
                 <div class="menu__item-price">
                     <div class="menu__item-cost">Цена:</div>
-                    <div class="menu__item-total"><span>${this.price}</span> грн/день</div>
+                    <div class="menu__i tem-total"><span>${this.price}</span> грн/день</div>
                 </div>
-       </div>`
+       `
        this.parent.append(element)
         }
 
@@ -197,7 +203,8 @@ document.addEventListener("DOMContentLoaded",() => { /* js чекає загру
         'Меню "Фитнес"',
         'Меню "Фитнес" - это новый подход к приготовлению блюд: больше свежих овощей и фруктов. Продукт активных и здоровых людей. Это абсолютно новый продукт с оптимальной ценой и высоким качеством!',
         11,
-        '.menu .container'
+        '.menu .container',
+        'big'
     )
     card1.render()
 
@@ -223,5 +230,97 @@ document.addEventListener("DOMContentLoaded",() => { /* js чекає загру
 
 
 
-    //----------------------------------------------------------------------
+//----------------------------------------------------------------------
+
+// Отримуєм дані з форми  без перезагрузки сторінки
+
+  const forms = document.querySelectorAll('form'),
+        message ={
+            loading : 'img/form/spinner.svg',
+            success: "Дякуємо ! Найбижчим часом  ми   зателефонуємо вам",
+            fail:"Ой! Щось не так :( "
+        };
+
+    forms.forEach(item => {
+        postData(item)
+    })
+
+    function postData(form) {
+        form.addEventListener('submit' , (event) => {
+            event.preventDefault()
+            
+            const statusMessage = document.createElement('img')
+            statusMessage.src=message.loading
+            statusMessage.style.cssText =`
+                display: block;
+                margin: 0 auto;
+            `
+            form.insertAdjacentElement('afterend',statusMessage) // ставим після форми
+            const request = new XMLHttpRequest()   
+
+            request.open('POST', 'server.php')
+
+            /* якщо ми юзаєм клас XMLHttpRequest то  |request.setRequestHeader('Content-type','multipart/form-data')| не потрібний!!!!!!!! */
+            // request.setRequestHeader('Content-type','multipart/form-data')
+            //-----------------------------------
+            const formData = new FormData(form) // Отримуєм дані з форми з допомогою класу  FormData 
+            // in HTML завжди повинен бути тег name
+            request.send(formData) // Відправляєм дані на сервер
+            // Для JSON відправки
+            /*const request = new XMLHttpRequest()   
+
+            request.open('POST', 'server.php')
+
+            request.setRequestHeader('Content-type','application/json')
+            const formData = new FormData(form)
+            const object = {} // для перетворення formData в JSON
+            formData.forEach(function(key,value){
+                object[key] = value // для перетворення formData в JSON
+            })
+            request.send(JSON.stringify(object)) */  // Відправляєм дані на сервер
+            //-----------------------------------------------
+            
+
+            request.addEventListener('load', (event) => {
+                if (request.status === 200) {
+                    console.log(request.response)
+                    showThanksModal(message.success)
+                    form.reset()
+                    statusMessage.remove()
+                  
+                }else{showThanksModal(message.fail)
+                }
+            })
+
+        })
+
+        function showThanksModal(message) {
+            const prevModalDialog = document.querySelector('.modal__dialog')
+
+            prevModalDialog.classList.add('hide')
+            openModal()
+
+            const thanksModal = document.createElement('div')
+            thanksModal.classList.add('modal__dialog')
+            thanksModal.innerHTML = `
+                <div class="modal__content">
+                    <div class="modal__close" data-close>×</div>
+                    <div class="modal__title">${message}</div>
+                </div>
+            `
+            document.querySelector('.modal').append(thanksModal)
+            setTimeout(() => {
+                thanksModal.remove()
+                prevModalDialog.classList.add('show')
+                prevModalDialog.classList.remove('hide')
+                
+                closeModal()
+                prevModalDialog.classList.remove('show')
+            },3000)
+            
+        }
+    }
+ 
+// -----------------------------------------------------------
+
 })
