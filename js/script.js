@@ -183,7 +183,7 @@ document.addEventListener("DOMContentLoaded",() => { /* js чекає загру
            this.classes.forEach(className => element.classList.add(className)) // Якщо ми хочемо додати ще класи
            element.innerHTML = `   
            
-                <img src="img/tabs/${this.src}" alt=${this.alt}>
+                <img src="${this.src}" alt=${this.alt}>
                 <h3 class="menu__item-subtitle">${this.title}</h3>
                 <div class="menu__item-descr">${this.descr}</div>
                 <div class="menu__item-divider"></div>
@@ -196,39 +196,45 @@ document.addEventListener("DOMContentLoaded",() => { /* js чекає загру
         }
 
     }   
+    const getCards = async(url) => { // async and await роблять з асинхронной функції - синхронну
+        const res = await fetch(url) // await - почекати
+           
+        if(!res.ok) /* Якщо помилка(наприклад 404 ) то викидаєм помилкм */ {
+            throw new Error(`Could not fetch ${url} , status: ${res.status}`)
+        }
 
-    const card1 = new OurMenu(
-        'vegy.jpg',
-        'vegy',
-        'Меню "Фитнес"',
-        'Меню "Фитнес" - это новый подход к приготовлению блюд: больше свежих овощей и фруктов. Продукт активных и здоровых людей. Это абсолютно новый продукт с оптимальной ценой и высоким качеством!',
-        11,
-        '.menu .container',
-        'big'
-    )
-    card1.render()
+        return await res.json()
+    }
 
-    const card2 = new OurMenu(
-        'elite.jpg',
-        'elite',
-        'Меню “Премиум”',
-        'В меню “Премиум” мы используем  не только красивый дизайн упаковки, но и качественное исполнение блюд. Красная рыба, морепродукты, фрукты - ресторанное меню без похода в ресторан!',
-        21,
-        '.menu .container'
-    )
-    card2.render()
+    // First variant
+    // getCards('http://localhost:3000/menu') 
+    // .then(data => {
+    //     data.forEach(obj => {
+    //         new OurMenu(obj.img,obj.altimg,obj.title,obj.descr,obj.price,'.menu .container').render()
+    //     })
+    // })
 
-    const card3 = new OurMenu(
-        'post.jpg',
-        'post',
-        'Меню "Постное"',
-        'Меню “Постное” - это тщательный подбор ингредиентов: полное отсутствие продуктов животного происхождения, молоко из миндаля, овса, кокоса или гречки, правильное количество белков за счет тофу и импортных вегетарианских стейков.',
-        18,
-        '.menu .container'
-    )
-    card3.render()
-
-
+    // Second variant з використанням бібліотеки axios
+    axios.get('http://localhost:3000/menu')
+    .then(data => {
+             data.data.forEach(obj => {
+                 new OurMenu(obj.img,obj.altimg,obj.title,obj.descr,obj.price,'.menu .container').render()
+             })
+            })
+    // getCards замінила це
+    //#region 
+    // const card1 = new OurMenu(
+    //     'vegy.jpg',
+    //     'vegy',
+    //     'Меню "Фитнес"',
+    //     'Меню "Фитнес" - это новый подход к приготовлению блюд: больше свежих овощей и фруктов. Продукт активных и здоровых людей. Это абсолютно новый продукт с оптимальной ценой и высоким качеством!',
+    //     11,
+    //     '.menu .container',
+    //     'big'
+    // )
+    // card1.render()
+//#endregion
+ 
 
 //----------------------------------------------------------------------
 
@@ -242,10 +248,21 @@ document.addEventListener("DOMContentLoaded",() => { /* js чекає загру
         };
 
     forms.forEach(item => {
-        postData(item)
+        bindPostData(item)
     })
 
-    function postData(form) {
+    const postData = async(url,data) => { // async and await роблять з асинхронной функції - синхронну
+        const res = await fetch(url,{ // await - почекати
+            method: 'POST',
+            headers: {
+                'Content-type':'application/json'
+            },
+            body: data
+        })
+        return await res.json()
+    }
+
+    function bindPostData(form) { // Зв'язує дані
         form.addEventListener('submit' , (event) => {
             event.preventDefault()
             
@@ -292,17 +309,10 @@ document.addEventListener("DOMContentLoaded",() => { /* js чекає загру
             // Fetch API // Використовує проміси // Для роботи із сервером
             //  зручніший ніж XMLHttpRequest
 
-            const object = {} // для перетворення formData в JSON
-            formData.forEach(function(value,key){
-                object[key] = value // для перетворення formData в JSON
-            })
-            fetch('server.php', {
-                method: 'POST',
-                 headers: {
-                     'Content-type':'application/json'
-                 },
-                body: JSON.stringify(object)
-            }).then(data => data.text())
+            const json = JSON.stringify(Object.fromEntries(formData.entries())) // для перетворення formData в JSON
+            
+
+            postData('http://localhost:3000/requests',json)
             .then(data => {
                 console.log(data)
                 showThanksModal(message.success)
@@ -363,9 +373,181 @@ document.addEventListener("DOMContentLoaded",() => { /* js чекає загру
 
     fetch('http://localhost:3000/menu')
     .then(data => data.json())
-    .then(res => console.log(res))
+    //.then(res => console.log(res))
 
 //-------------------------------------------------------
 
 
+
+// Slider
+
+// first option
+// <div class="offer__slider-wrapper"> --- видалити
+//#region 
+//  const btnPrev = document.querySelector('.offer__slider-prev'),
+//        btnNext = document.querySelector('.offer__slider-next'),
+//        currentPosition = document.querySelector("#current"),
+//        imagesSlider =document.querySelectorAll('.offer__slide'),
+//        totalSlides = document.querySelector('#total');
+
+//     function hideSliderContent() {
+//         imagesSlider.forEach(item =>{
+//             item.classList.remove('show' , 'fade')
+//             item.classList.add('hide')
+            
+//         })
+//     }
+
+//     function showSliderContent(i = 0) {
+//         imagesSlider[i].classList.remove('hide')
+//         imagesSlider[i].classList.add('show' , 'fade')
+//     }
+//     hideSliderContent()
+//     showSliderContent()
+//     function getZero(num) {
+//         if (num >= 0 && num <= 9) {
+//             return `0${num}`
+//         }else {return num;}
+//     }
+//     function setSlider () {
+      
+//         currentPosition.innerHTML = getZero(1)
+//         totalSlides.innerHTML = getZero(imagesSlider.length)
+//     }
+//     setSlider()
+//     function changeSlide(next,current) {
+//         imagesSlider[next].classList.remove('hide')
+//         imagesSlider[next].classList.add('show' , 'fade')
+//         imagesSlider[current].classList.remove('show' , 'fade')
+//         imagesSlider[current].classList.add('hide')
+//     }
+  
+//     btnNext.addEventListener('click',()=>{
+//         let current = +currentPosition.innerHTML-1 
+//         if (current === imagesSlider.length-1){
+//             changeSlide(0,current)
+//             currentPosition.innerHTML = getZero(1)
+//             }else {
+//                 changeSlide(current+1,current)
+//          currentPosition.innerHTML = getZero(current+2)   }
+//     })
+//     btnPrev.addEventListener('click',() => {
+//         let current = +currentPosition.innerHTML-1 
+//         if (current === 0){
+//             changeSlide(imagesSlider.length-1,current)
+//             currentPosition.innerHTML = getZero(imagesSlider.length)}
+//         else{    
+//             changeSlide(current-1,current)
+//         currentPosition.innerHTML = getZero(current)
+//         }
+//     })
+//#endregion
+// -------------------------------------------------
+
+// Slider Second option
+// Карусель
+
+    const btnPrev = document.querySelector('.offer__slider-prev'),
+        btnNext = document.querySelector('.offer__slider-next'),
+        currentPosition = document.querySelector("#current"),
+        imagesSlider = document.querySelectorAll('.offer__slide'),
+        slider = document.querySelector('.offer__slider'),
+        totalSlides = document.querySelector('#total'),
+        slidesField = document.querySelector('.offer__slider-inner'),
+        slidesWrapper = document.querySelector('.offer__slider-wrapper'),
+        width = window.getComputedStyle(slidesWrapper).width;
+
+    let slideIndex = 1;
+    currentPosition.innerHTML = getZero(slideIndex)
+    let offset = 0 // Відступ
+
+    function getZero(num) {
+            if (num >= 0 && num <= 9) {
+                return `0${num}`
+                }else {return num;}
+        }
+    slidesField.style.width = 100 * imagesSlider.length + '%' // дивитись 62 урок
+    slidesField.style.display = 'flex' // Щоб всі слайди були в рядок
+    slidesField.style.transition = '0.5s all'
+    slidesWrapper.style.overflow = 'hidden' // Щоб показувався тільки 1 слайд а не 4
+
+    imagesSlider.forEach(slide => {
+        slide.style.width = width // Встановлюємо всім слайдам однакову ширину
+    })
+    // Навігація для слайдера 
+
+     slider.style.position = 'relative'
+      const indicators = document.createElement('ol'),
+            dots = [];
+      indicators.classList.add('carousel-indicators')
+      slider.append(indicators)
+      for (let i = 0; i< imagesSlider.length;i++){
+          const dot = document.createElement('li')
+          dot.setAttribute('data-slide-to',i+1)
+          dot.classList.add('dot')
+          if(i==0) {
+              dot.style.opacity = 0.8
+          }
+          indicators.append(dot)
+          dots.push(dot)
+      }
+
+     
+     //---------------------------------------------
+
+    function nextSlide () {
+        if (offset == +width.slice(0,width.length-2) * (imagesSlider.length-1))
+        /* Якщо елемент останній то вертаєм imagesSlider в початкове положення */ 
+        {offset = 0
+            slideIndex = 1 }
+        else{offset += +width.slice(0,width.length-2)
+            slideIndex += 1}
+        slidesField.style.transform = `translateX(-${offset}px)` // Сдвиг вліво
+        currentPosition.innerHTML = getZero(slideIndex)
+        dots.forEach(dot => dot.style.opacity = '.5')
+        dots[slideIndex-1].style.opacity = '0.8'
+    }
+    function previousSlide() {
+        if (offset == 0)
+        /* Якщо елемент перший то перевертаєм imagesSlider */ 
+        {offset = +width.slice(0,width.length-2) * (imagesSlider.length-1)
+            slideIndex = imagesSlider.length
+        }
+        
+        else{offset -= +width.slice(0,width.length-2)
+        slideIndex -= 1}
+        slidesField.style.transform = `translateX(-${offset}px)` // Сдвиг вліво
+        currentPosition.innerHTML = getZero(slideIndex)
+        dots.forEach(dot => dot.style.opacity = '.5')
+        dots[slideIndex-1].style.opacity = '0.8'
+    }
+    btnNext.addEventListener('click', () => {
+      nextSlide()
+      clearInterval(interval)
+    })
+    btnPrev.addEventListener('click', () => {
+      previousSlide()
+      clearInterval(interval)
+    })
+    const interval =  setInterval(()=>{
+        nextSlide()
+       },5000)
+
+       dots.forEach(dot => { /* Коли клікаєм на dot то переходим на певний слайд */
+        dot.addEventListener('click',(event) => {
+            clearInterval(interval)
+            const slideTO = event.target.getAttribute('data-slide-to')
+            slideIndex = slideTO
+            offset = +width.slice(0,width.length-2) * (slideTO-1)
+            slidesField.style.transform = `translateX(-${offset}px)` // Сдвиг вліво
+
+            if (imagesSlider.length < 10) {
+                currentPosition.innerHTML = `0${slideIndex}`
+            }else{currentPosition.innerHTML = `${slideIndex}`}
+
+            dots.forEach(dot => dot.style.opacity = '.5')
+        dots[slideIndex-1].style.opacity = '0.8'
+        })
+    })
+// ------------------------------------------------
 })
