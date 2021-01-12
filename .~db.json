@@ -30,13 +30,23 @@
     },
     {
       "name": "borus",
-      "phone": "000000000",
+      "phone": "0969922527",
       "id": 2
     },
     {
       "name": "localhost",
-      "phone": "000000000",
+      "phone": "0969922527",
       "id": 3
+    },
+    {
+      "name": "borus",
+      "phone": "0969922527",
+      "id": 4
+    },
+    {
+      "name": "borus",
+      "phone": "0969922527",
+      "id": 5
     }
   ]
 }
