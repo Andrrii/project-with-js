@@ -1,3 +1,7 @@
+require('es6-promise').polyfill() // оптимізація під старі браузери
+
+import 'nodelist-foreach-polyfill' // оптимізація під старі браузери
+
 import tabs from './modules/tabs'; // WEBPACK
 import timer  from './modules/timer'; // WEBPACK
 import feedback  from './modules/feedback'; // WEBPACK
